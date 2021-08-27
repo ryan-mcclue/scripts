@@ -1,0 +1,18 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+test ! -n "${1}" && printf "usage: ${0} <script>\n" \
+  && exit 1
+
+script="${1}"
+
+script_path="$(command -v "$script")"
+
+test ! -n "$script_path" && \
+  printf "$script is not on \$PATH\n" && exit 2
+
+file_type="$(file --mime-type -b "$script_path")" 
+case "$file_type" in
+  text/x-*) exec vim "$script_path" ;;
+  *) printf "$script is not a script\n" && exit 3 ;;
+esac

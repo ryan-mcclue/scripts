@@ -1,0 +1,17 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+merge() {
+  for file in "$@"; do
+    test -r "$file" || continue
+    printf "============================ $file ============================\n\n" 
+    cat "$file"
+    printf "\n"
+  done
+}
+
+if test -n "$1"; then
+  merge "$@"
+else
+  merge -- *
+fi

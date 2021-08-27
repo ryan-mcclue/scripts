@@ -1,0 +1,14 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+read -p "Warning, this will remove all docker containers and images. Continue? (y/yes) " yes
+case "$yes" in
+  y|yes) ;; 
+  *) printf "Aborted\n" && return ;;
+esac
+
+# NOTE(Ryan): Remove all containers and there volumes
+docker rm -vf $(docker ps -a -q)
+
+# NOTE(Ryan): Remove all images
+docker rmi -f $(docker images -a -q)

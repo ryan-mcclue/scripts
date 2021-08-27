@@ -1,0 +1,9 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+test ! -n "${1}" && printf "usage: run <name> [docker-args...]\n" && exit 1
+name="${1}"
+shift
+
+# IMPORTANT(Ryan): We don't want to preserve in docker ps -a
+docker run -it -h "$name" --name "$name" --rm --env="DISPLAY" --net="host" "$@" "$name" 

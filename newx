@@ -1,0 +1,19 @@
+#!/bin/bash
+# SPDX-License-Identifier: zlib-acknowledgement
+
+test ! -n "${1}" && printf "usage: ${0} <script>" && exit 1
+
+script_path="$HOME/prog/personal/scripts/${1}" 
+
+if test -e "$script_path"; then
+  read -p "${1} already exists. Modify? (y/yes) " yes
+  case "$yes" in
+	  y|yes) exec vim "$script_path" ;;
+    *) exit 0
+  esac
+fi
+
+printf "#!/bin/sh\n" > "$script_path"
+printf "# SPDX-License-Identifier: zlib-acknowledgement\n\n\n" >> "$script_path"
+chmod 700 "$script_path"
+exec vim +4 "$script_path"

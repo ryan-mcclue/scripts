@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: zlib-acknowledgement
+
+*
+
+!.gitignore
+!README.md
+!LICENSE
+
+!docker-reset
+!docker-run
+!merge
+!newx
+!path
+!vimx

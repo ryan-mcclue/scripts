@@ -6,7 +6,7 @@ git_repo="$1"
 
 folder_name="${git_repo##*/}"
 folder_name="${folder_name%.git}"
-folder_path="$HOME/prog/personal/sources/$folder_name"
+folder_path="$HOME/prog/sources/$folder_name"
 
 wget -q "$git_repo" 
 if test ! $? -eq 0; then

@@ -14,6 +14,7 @@ if test -e "$script_path"; then
 fi
 
 printf "#!/bin/sh\n" > "$script_path"
-printf "# SPDX-License-Identifier: zlib-acknowledgement\n\n\n" >> "$script_path"
+printf "# SPDX-License-Identifier: zlib-acknowledgement\n\n" >> "$script_path"
+printf 'test ! -n "${1}" && printf "usage: ${0} <script>" && exit 1' >> "$script_path"
 chmod 700 "$script_path"
 exec vim +4 "$script_path"

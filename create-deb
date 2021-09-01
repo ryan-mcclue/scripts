@@ -7,6 +7,8 @@ test ! -n "$1" -o ! -n "$2" && printf "usage: create-deb <name> <version>\n" && 
 name="$1"
 version="$2"
 
+test ! -f "$name".png && printf "require icon with <name>.png to be present\n" && exit 2
+
 # NOTE(Ryan): Clean
 rm -rf "$name"*
 
@@ -102,12 +104,23 @@ EOF
 sed -r 's/^\s+/\t/' < debian/rules.temp > debian/rules
 rm debian/rules.temp
 
+cat <<EOF > ../"$name".desktop 
+[Desktop Entry]
+Name=$name
+Exec=$name
+Icon=$name
+Type=Application
+Terminal=false
+EOF
+
 # NOTE(Ryan): More concise then manually constructing the debian package file hierarchy, e.g:
 # override_dh_auto_install:
 #     mkdir -p debian/$name/usr/bin 
 #     cp build/$name debian/$name/usr/bin
 cat <<EOF > debian/$name.install
 build/$name usr/bin
+../$name.desktop usr/share/applications
+../$name.png usr/share/pixmaps
 EOF
 
 cat <<EOF > debian/README.Debian

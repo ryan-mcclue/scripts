@@ -71,8 +71,8 @@ Package: $name
 Architecture: any
 Multi-Arch: foreign
 Depends: $depends_value
-Description: Single line description.
-  Replace this with a multi-line description.
+Description: Debian package for $name.
+  Replace this with a description of $name
 EOF
 rm debian/compat
 
@@ -131,7 +131,3 @@ printf "\n==================================\n"
 printf "\n==================================\n"
 printf "To generate source .changes for dput upload: debuild -S -k<gpg-key>\n"
 printf "\n==================================\n"
-
-# dpkg -i ../$name_$version-1_amd64.deb
-# with dpkg -L $name we can see installed files will default to /usr/share
-# apt remove $name ()

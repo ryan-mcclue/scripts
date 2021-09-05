@@ -10,7 +10,7 @@ version="$2"
 test ! -f "$name".png && printf "require icon with <name>.png to be present\n" && exit 2
 
 # NOTE(Ryan): Clean
-rm -rf "$name"*
+find . \( -iname "$name*" \) -and \( -not -iname "$name.png" \) -exec rm -rf '{}' ';'
 
 tarball="v${version}.tar.gz"
 wget -q "https://github.com/ryan-mcclue/$name/archive/refs/tags/$tarball" 

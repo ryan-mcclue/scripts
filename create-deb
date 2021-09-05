@@ -99,6 +99,16 @@ override_dh_auto_clean:
 
 override_dh_auto_build:
     . misc/build
+
+override_dh_auto_install:
+    mkdir -p debian/$name/usr/bin 
+    cp build/ubuntu-$name debian/$name/usr/bin/$name
+
+    mkdir -p debian/$name/usr/share/applications 
+    cp ../$name.desktop debian/$name/usr/share/applications
+
+    mkdir -p debian/$name/usr/share/pixmaps 
+    cp ../$name.png debian/$name/usr/share/pixmaps
 EOF
 # IMPORTANT(Ryan): Redirection over in-place necessary to avoid vimrc tab-space conversion
 sed -r 's/^\s+/\t/' < debian/rules.temp > debian/rules
@@ -111,16 +121,6 @@ Exec=$name
 Icon=$name
 Type=Application
 Terminal=false
-EOF
-
-# NOTE(Ryan): More concise then manually constructing the debian package file hierarchy, e.g:
-# override_dh_auto_install:
-#     mkdir -p debian/$name/usr/bin 
-#     cp build/$name debian/$name/usr/bin
-cat <<EOF > debian/$name.install
-build/ubuntu-$name usr/bin
-../$name.desktop usr/share/applications
-../$name.png usr/share/pixmaps
 EOF
 
 cat <<EOF > debian/README.Debian

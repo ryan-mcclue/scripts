@@ -121,7 +121,7 @@ Exec=$name
 Icon=$name
 Type=Application
 Terminal=false
-EOF
+EOF 
 
 cat <<EOF > debian/README.Debian
 Debian package for https://github.com/ryan-mcclue/$name/releases

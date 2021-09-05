@@ -118,7 +118,7 @@ EOF
 #     mkdir -p debian/$name/usr/bin 
 #     cp build/$name debian/$name/usr/bin
 cat <<EOF > debian/$name.install
-build/$name usr/bin
+build/ubuntu-$name usr/bin
 ../$name.desktop usr/share/applications
 ../$name.png usr/share/pixmaps
 EOF

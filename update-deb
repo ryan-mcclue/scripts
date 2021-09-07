@@ -4,10 +4,10 @@
 set -e
 
 git show-ref --verify --quiet refs/heads/pristine-tar
-test ! $? -eq 0 && printf "Run: gbp clone --pristine-tar <repo>" && exit 1
+test ! $? -eq 0 && printf "Run: gbp clone --pristine-tar <repo>; git remote set-url origin <ssh-clone-url>" && exit 1
 
 git show-ref --verify --quiet refs/heads/upstream
-test ! $? -eq 0 && printf "Run: gbp clone --pristine-tar <repo>" && exit 2
+test ! $? -eq 0 && printf "Run: gbp clone --pristine-tar <repo>; git remote set-url origin <ssh-clone-url>" && exit 2
 
 uscan --no-download > log.temp
 test $? -eq 0 && uscan
@@ -16,13 +16,15 @@ version_downloaded="$(tail -1 log.temp)"
 version_downloaded="${version_downloaded##*/}"
 version_downloaded="${version_downloaded%.tar.gz}"
 version_downloaded="${version_downloaded#v}"
+rm log.temp
 
 project_name="$(git rev-parse --show-toplevel)"
 name="${project_name%-deb}"
+name="${name##*/}"
 
-gpg import-orig --pristine-tar "../${name}_${version_downloaded}.orig.tar.gz"
+gbp import-orig --pristine-tar "../${name}_${version_downloaded}.orig.tar.gz"
 
-gpg dch -a
+gbp dch -a
 dch -e
 dpkg-buildpackage
 lintian

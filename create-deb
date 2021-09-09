@@ -129,5 +129,5 @@ printf "To generate git repo: gbp import-dsc --pristine-tar <name>.dsc <name> \n
 printf "\n==================================\n"
 
 printf "\n==================================\n"
-printf "To generate source .changes for dput upload: debuild -S -k<gpg-key>\n"
+printf "To generate source .changes for dput ppa:ryan-mcclue/personal upload: debuild -S -k<gpg-key>\n"
 printf "\n==================================\n"

@@ -1,0 +1,13 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+if test ! -n "${2}" && printf "usage: ${0} [commit|code] <search>\n" && exit 1
+
+if test "${1}" = "commit"; then
+  git log -S "${2}" 
+elif test "${1}" = "code"; then
+  git rev-list --all | xargs git grep "${2}" 
+else
+  printf "usage: ${0} [commit|code] <search>\n"
+  exit 2
+fi

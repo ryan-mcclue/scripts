@@ -16,3 +16,4 @@
 !create-deb
 !update-deb
 !git-search
+!git-squash

@@ -3,8 +3,10 @@
 
 test ! -n "${2}" && printf "usage: git-search [commit|code] <search>\n" && exit 1
 
+# NOTE(Ryan): What commit contained the search term
 if test "${1}" = "commit"; then
   git log -S "${2}" 
+# NOTE(Ryan): What code snippets contained the search term
 elif test "${1}" = "code"; then
   git rev-list --all | xargs git grep "${2}" 
 else

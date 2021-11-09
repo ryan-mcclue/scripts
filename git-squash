@@ -1,0 +1,8 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+test ! -n "${1}" && printf "usage: ${0} <number-of-commits>" && exit 1
+
+# IMPORTANT(Ryan): Will have to do $(git push --force) if squashed commits already pushed
+git reset --soft HEAD~${1}
+git commit --edit -m"$(git log --format=%B --reverse HEAD..HEAD@{1})"

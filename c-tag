@@ -1,0 +1,8 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+# TODO(Ryan): Add support for multiple folders
+test ! -n "${1}" && printf "usage: ${0} <folder>\n" && exit 1
+folder="${1}"
+
+find "$folder" -type f -iname "*.[chSs]" | xargs ctags --c-kinds=+lpx -R

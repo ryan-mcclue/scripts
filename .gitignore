@@ -19,3 +19,4 @@
 !git-squash
 !c-tag
 !create-embedded
+!CMockaTesting.cmake

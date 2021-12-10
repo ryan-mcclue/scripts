@@ -1,0 +1,169 @@
+#!/bin/bash
+# SPDX-License-Identifier: zlib-acknowledgement
+
+test ! -n "${1}" -o ! -n "${2}" && printf "usage: ${0} <project-abbrev> '<project-name>'\n" \
+  && exit 1
+project_abbrev="${1}"
+project_name="${2}"
+
+create_license() {
+cat <<EOF > LICENSE
+zlib License
+
+(C) $(date +%Y) Ryan McClue 
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+EOF
+}
+
+create_readme() {
+cat <<EOF > README.md
+<!-- SPDX-License-Identifier: zlib-acknowledgement -->
+
+# ${project_abbrev^^} (${project_name})
+> ![Github](https://img.shields.io/github/license/ryan-mcclue/${project_abbrev})
+EOF
+}
+
+create_codefiles() {
+  mkdir -p code tests misc work
+cat <<EOF > code/${project_abbrev}.c
+// SPDX-License-Identifier: zlib-acknowledgement
+
+int
+main(void)
+{
+  return 0;
+}
+EOF
+
+cat <<EOF > tests/test-${project_abbrev}.c
+// SPDX-License-Identifier: zlib-acknowledgement
+
+#include <stdarg.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <limits.h>
+#include "cmocka.h"
+
+void
+test_${project_abbrev}(void **state)
+{
+ some_assert_here
+}
+
+int 
+main(void)
+{
+	const struct CMUnitTest tests[] = {
+    // cmocka_unit_test_setup_teardown(test, setup, teardown),
+    cmocka_unit_test(test_Element0ShouldReturn1),
+    cmocka_unit_test(test_Element2ShouldReturn2),
+    cmocka_unit_test(test_ElementNShouldReturnPartOfSequence),
+    cmocka_unit_test(test_NegativeElementsShouldReturn0),
+    cmocka_unit_test(test_ElementThatOverflowsShouldReturn0),
+  };
+
+  return cmocka_run_group_tests(tests, group_setup, group_teardown);
+}
+EOF
+
+cat <<EOF > misc/build
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+cmake --build build/
+EOF
+cat <<EOF > misc/run-tests
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+Incorporate qemu here!
+cmake --build build/ --target test-${project_abbrev} && ctest --test-dir build/
+EOF
+cat <<EOF > misc/flash
+device STM32F429ZI 
+si 1
+speed 4000
+loadbin build/${project_abbrev}.bin 0x8000000
+r
+g
+qc
+EOF
+cat <<EOF > misc/flash-runner
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+JLinkExe -commanderscript misc/flash
+EOF
+cat <<EOF > misc/lint
+EOF
+
+cat <<EOF > work/.gdbinit
+EOF
+}
+
+create_cmakefiles() {
+cat <<EOF > CMakeLists.txt
+EOF
+
+mkdir -p cmake/toolchains/
+}
+
+
+create_gitfiles() {
+cat <<EOF > .gitignore
+# SPDX-License-Identifier: zlib-acknowledgement
+
+*
+
+!.gitignore
+!README.md
+!LICENSE
+!CMakeLists.txt
+
+!cmake/
+!cmake/toolchains
+!cmake/toolchains/cross
+!cmake/toolchains/native
+!cmake/**/*.cmake
+
+!misc/
+!misc/**/*
+
+!code/
+!code/**/*.[chs]
+!code/**/*.ld
+
+!tests/
+!tests/**/*.[ch]
+
+!work/
+!work/.gdbinit
+EOF
+}
+
+
+create_license
+create_readme
+create_cmakefiles
+create_codefiles
+create_gitfiles
+
+printf "Update README!\n"
+printf "Update flash script!\n"

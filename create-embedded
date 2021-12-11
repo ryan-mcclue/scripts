@@ -48,10 +48,11 @@ wget -O cmake/CPM.cmake \
 ln -sf "$HOME/prog/personal/scripts/CMockaTesting.cmake" \
   "$HOME/prog/personal/${project_abbrev}/cmake/CMockaTesting.cmake"
 
-cat <<EOF > cmake/toolchains
-CMAKE_CROSSCOMPILING_EMULATOR
-EOF
+#cat <<EOF > cmake/toolchains
+#CMAKE_CROSSCOMPILING_EMULATOR
+#EOF
 
+cmake_objcopy='${CMAKE_OBJCOPY}'
 cat <<EOF > CMakeLists.txt
 # SPDX-License-Identifier: zlib-acknowledgement
 
@@ -77,106 +78,108 @@ target_compile_definitions(${project_abbrev} PRIVATE
 
 add_custom_command(
   TARGET ${project_abbrev} POST_BUILD
-  COMMAND ${CMAKE_OBJCOPY} -O binary ${project_abbrev} ${project_abbrev}.bin
+  COMMAND ${cmake_objcopy} ARGS -O binary ${project_abbrev} ${project_abbrev}.bin
   BYPRODUCTS ${project_abbrev}.bin)
 
 include(cmake/CPM.cmake)
-CPMAddPackage(
-  NAME cmocka
-  GITHUB_REPOSITORY https://gitlab.com/cmocka/cmocka 
-  VERSION 1.1.5
-  GIT_TAG cmocka-1.1.5
-  OPTIONS
-    "WITH_EXAMPLES OFF"
-    "CMAKE_BUILD_TYPE DEBUG"
-)
-target_link_libraries(target cmocka)
+CPMAddPackage("gl:cmocka/cmocka#cmocka-1.1.5")
 
 include(cmake/CMockaTesting.cmake)
-cmocka_add_test(${project_abbrev} files)
+cmocka_add_test(test-${project_abbrev}
+  "code/${project_abbrev}.c;tests/test-${project_abbrev}.c"
+)
 cmocka_add_single_test_target()
 EOF
 
 }
 
-create_cmakefiles
+create_codefiles() {
+  mkdir -p code tests misc work build
+cat <<EOF > code/${project_abbrev}.c
+// SPDX-License-Identifier: zlib-acknowledgement
 
-#create_codefiles() {
-#  mkdir -p code tests misc work
-#cat <<EOF > code/${project_abbrev}.c
-#// SPDX-License-Identifier: zlib-acknowledgement
-#
-#int
-#main(void)
-#{
-#  return 0;
-#}
-#EOF
-#
-#cat <<EOF > tests/test-${project_abbrev}.c
-#// SPDX-License-Identifier: zlib-acknowledgement
-#
-##include <stdarg.h>
-##include <stdint.h>
-##include <stddef.h>
-##include <setjmp.h>
-##include <limits.h>
-##include <cmocka.h>
-#
-#void
-#test_${project_abbrev}(void **state)
-#{
-#  assert_int_equal(1, 1);
-#}
-#
-#int 
-#main(void)
-#{
-#	const struct CMUnitTest tests[] = {
-#    cmocka_unit_test(test_${project_abbrev}),
-#  };
-#
-#  return cmocka_run_group_tests(tests, NULL, NULL);
-#}
-#EOF
-#
-#cat <<EOF > misc/create
-##!/bin/sh
-## SPDX-License-Identifier: zlib-acknowledgement 
-#
+#if defined(TESTING)
+  int testable_main(void)
+#else
+  int main(void)
+#endif
+{
+  return 0;
+}
+EOF
+
+cat <<EOF > tests/test-${project_abbrev}.c
+// SPDX-License-Identifier: zlib-acknowledgement
+
+#include <stdarg.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <limits.h>
+#include <cmocka.h>
+
+extern int testable_main(void);
+
+void
+test_${project_abbrev}(void **state)
+{
+  assert_int_equal(testable_main(), 0);
+}
+
+int 
+main(void)
+{
+	const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_${project_abbrev}),
+  };
+
+  return cmocka_run_group_tests(tests, NULL, NULL);
+}
+EOF
+
 #cmake -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/cross/GCC-STM32F429ZI.cmake \
 #  -DCMAKE_BUILD_TYPE=Debug -Bbuild
-#EOF
-#cat <<EOF > misc/build
-##!/bin/sh
-## SPDX-License-Identifier: zlib-acknowledgement 
-#
-#cmake --build build/
-#EOF
-#cat <<EOF > misc/run-tests
-##!/bin/sh
-## SPDX-License-Identifier: zlib-acknowledgement 
-#
-#cmake --build build/ --target test-${project_abbrev} && ctest --test-dir build/
-#EOF
-#cat <<EOF > misc/flash
-#device STM32F429ZI 
-#si 1
-#speed 4000
-#loadbin build/${project_abbrev}.bin 0x8000000
-#r
-#g
-#qc
-#EOF
-#cat <<EOF > misc/flash-runner
-##!/bin/sh
-## SPDX-License-Identifier: zlib-acknowledgement 
-#
-#JLinkExe -commanderscript misc/flash
-#EOF
-#cat <<EOF > work/.gdbinit
-#EOF
-#}
+cat <<EOF > misc/create
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+cmake -Bbuild
+EOF
+cat <<EOF > misc/build
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+cmake --build build/
+EOF
+cat <<EOF > misc/run-tests
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+# CHANGE TO RUNNING SCRIPT INSTEAD OF CMAKE TARGET
+cmake --build build/ --target single-test-target && ctest -R 'test-.*' --test-dir build/
+EOF
+cat <<EOF > misc/flash
+device STM32F429ZI 
+si 1
+speed 4000
+loadbin build/${project_abbrev}.bin 0x8000000
+r
+g
+qc
+EOF
+cat <<EOF > misc/flash-runner
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+JLinkExe -commanderscript misc/flash
+EOF
+chmod +x misc/flash-runner misc/flash misc/create misc/build misc/run-tests 
+cat <<EOF > work/.gdbinit
+EOF
+}
+
+create_cmakefiles
+create_codefiles
 
 #
 #

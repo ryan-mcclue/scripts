@@ -23,6 +23,10 @@ set(CMAKE_CXX_FLAGS_INIT
   "${ARCH_CPU_FLAGS}"
 	CACHE
 	INTERNAL "Default C++ compiler flags.")
+set(CMAKE_ASM_FLAGS_INIT
+	"-x assembler-with-cpp"
+	CACHE
+	INTERNAL "Default ASM compiler flags.")
 set(CMAKE_EXE_LINKER_FLAGS_INIT
   "${ARCH_LD_FLAGS}"
 	CACHE

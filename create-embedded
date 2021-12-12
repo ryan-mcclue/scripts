@@ -45,14 +45,12 @@ mkdir -p cmake/toolchains
 wget -O cmake/CPM.cmake \
   https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
 
-ln -sf "$HOME/prog/personal/scripts/CMockaTesting.cmake" \
-  "$HOME/prog/personal/${project_abbrev}/cmake/CMockaTesting.cmake"
-
-#cat <<EOF > cmake/toolchains
-#CMAKE_CROSSCOMPILING_EMULATOR
-#EOF
+cp "$HOME/prog/personal/scripts/tbc/CMockaTesting.cmake" cmake/
+cp "$HOME/prog/personal/scripts/tbc/arm-none-eabi-gcc.cmake" cmake/toolchains
+cp "$HOME/prog/personal/scripts/tbc/arm-none-eabi-gcc-mcu.cmake" cmake/toolchains
 
 cmake_objcopy='${CMAKE_OBJCOPY}'
+compiler_flags='${COMPILER_FLAGS}'
 cat <<EOF > CMakeLists.txt
 # SPDX-License-Identifier: zlib-acknowledgement
 
@@ -70,10 +68,22 @@ target_sources(${project_abbrev} PRIVATE
 target_include_directories(${project_abbrev} PRIVATE
   code
 )
-# NOTE(Ryan): INTERNAL/RELEASE and SLOW/FAST
-target_compile_definitions(${project_abbrev} PRIVATE
-  ${project_abbrev^^}_INTERNAL
-  ${project_abbrev^^}_SLOW
+set(COMPILER_FLAGS "\
+  -O0 -g -ggdb3\
+  \
+  -Werror -Wall -Wextra -pedantic -Warray-bounds=2\
+  \
+  -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable\
+  -Wno-unused-parameter -Wno-missing-field-initializers -Wno-write-strings\
+  -Wno-unused-result\
+  \
+  -fdata-sections -ffunction-sections\
+  "
+)
+target_compile_options(${project_abbrev} PRIVATE
+  -D${project_abbrev^^}_INTERNAL
+  -D${project_abbrev^^}_SLOW
+  ${compiler_flags}
 )
 
 add_custom_command(
@@ -88,13 +98,16 @@ include(cmake/CMockaTesting.cmake)
 cmocka_add_test(test-${project_abbrev}
   "code/${project_abbrev}.c;tests/test-${project_abbrev}.c"
 )
-cmocka_add_single_test_target()
 EOF
 
 }
 
 create_codefiles() {
   mkdir -p code tests misc work build
+  cp "$HOME/prog/personal/scripts/tbc/create" misc/
+  cp "$HOME/prog/personal/scripts/tbc/build" misc/
+  cp "$HOME/prog/personal/scripts/tbc/run-tests" misc/
+  cp "$HOME/prog/personal/scripts/tbc/flash-runner" misc/
 cat <<EOF > code/${project_abbrev}.c
 // SPDX-License-Identifier: zlib-acknowledgement
 
@@ -136,28 +149,6 @@ main(void)
   return cmocka_run_group_tests(tests, NULL, NULL);
 }
 EOF
-
-#cmake -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/cross/GCC-STM32F429ZI.cmake \
-#  -DCMAKE_BUILD_TYPE=Debug -Bbuild
-cat <<EOF > misc/create
-#!/bin/sh
-# SPDX-License-Identifier: zlib-acknowledgement 
-
-cmake -Bbuild
-EOF
-cat <<EOF > misc/build
-#!/bin/sh
-# SPDX-License-Identifier: zlib-acknowledgement 
-
-cmake --build build/
-EOF
-cat <<EOF > misc/run-tests
-#!/bin/sh
-# SPDX-License-Identifier: zlib-acknowledgement 
-
-# CHANGE TO RUNNING SCRIPT INSTEAD OF CMAKE TARGET
-cmake --build build/ --target single-test-target && ctest -R 'test-.*' --test-dir build/
-EOF
 cat <<EOF > misc/flash
 device STM32F429ZI 
 si 1
@@ -167,15 +158,12 @@ r
 g
 qc
 EOF
-cat <<EOF > misc/flash-runner
+cat <<EOF > misc/lint
 #!/bin/sh
 # SPDX-License-Identifier: zlib-acknowledgement 
 
-JLinkExe -commanderscript misc/flash
 EOF
-chmod +x misc/flash-runner misc/flash misc/create misc/build misc/run-tests 
-cat <<EOF > work/.gdbinit
-EOF
+chmod +x misc/flash misc/lint
 }
 
 create_cmakefiles
@@ -196,8 +184,6 @@ create_codefiles
 #
 #!cmake/
 #!cmake/toolchains
-#!cmake/toolchains/cross
-#!cmake/toolchains/native
 #!cmake/**/*.cmake
 #
 #!misc/
@@ -223,5 +209,5 @@ create_codefiles
 #create_gitfiles
 #
 #printf "Update mcu in flash script!\n"
-#printf "Update toolchain file in create script!\n"
+#printf "Update cmake mcu toolchain file!\n"
 #printf "Update HAL source,linker,include directories in CMakeLists.txt!\n"

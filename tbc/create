@@ -1,0 +1,4 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
+
+cmake -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm-none-eabi-gcc-mcu -Bbuild

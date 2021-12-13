@@ -50,10 +50,9 @@ cp "$HOME/prog/personal/scripts/tbc/arm-none-eabi-gcc.cmake" cmake/toolchains
 cp "$HOME/prog/personal/scripts/tbc/arm-none-eabi-gcc-mcu.cmake" cmake/toolchains
 
 bsp_driver_files='${BSP_DRIVER_FILES}'
-bsp_include_directories='${BSP_INCLUDE_DIRECTORIES}'
-bsp_macro_definitions='${BSP_MACRO_DEFINITIONS}'
+bsp_compiler_flags='${BSP_COMPILER_FLAGS}'
+cmake_source_dir='${CMAKE_SOURCE_DIR}'
 cmake_objcopy='${CMAKE_OBJCOPY}'
-cmake_size='${CMAKE_SIZE}'
 compiler_flags='${COMPILER_FLAGS}'
 cat <<EOF > CMakeLists.txt
 # SPDX-License-Identifier: zlib-acknowledgement
@@ -62,65 +61,66 @@ cmake_minimum_required(VERSION 3.20)
 project(${project_abbrev^^}
         VERSION 0.0.1
         DESCRIPTION "${project_name}"
-        LANGUAGES C)
+        LANGUAGES C ASM)
 set_property(GLOBAL PROPERTY C_STANDARD 11)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE 
+    BOOL "Export compile commands" FORCE)
+
 set(BSP_DRIVER_FILES
-
+  BSP/tra/startup_stm32f429xx.s
+  BSP/tra/Core/Src/system_stm32f4xx.c
 )
-set(BSP_INCLUDE_DIRECTORIES
-
+set(BSP_COMPILER_FLAGS
+  -DUSE_HAL_DRIVER
+  -DSTM32F429xx
+  -I${cmake_source_dir}/BSP/tra/Core/Inc
+  -I${cmake_source_dir}/BSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc
+  -I${cmake_source_dir}/BSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
+  -I${cmake_source_dir}/BSP/tra/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+  -I${cmake_source_dir}/BSP/tra/Drivers/CMSIS/Include
 ) 
-set(BSP_MACRO_DEFINITIONS
-
-)
 
 add_executable(${project_abbrev})
 target_sources(${project_abbrev} PRIVATE
   ${bsp_driver_files}
   code/${project_abbrev}.c
 )
-target_include_directories(${project_abbrev} PRIVATE
-  ${bsp_include_directories}
-  code
-)
-set(COMPILER_FLAGS "\
-  -D${project_abbrev^^}_INTERNAL\
-  -D${project_abbrev^^}_SLOW\
-  \
-  -O0 -g -ggdb3\
-  \
-  -Werror -Wall -Wextra -pedantic -Warray-bounds=2\
-  \
-  -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable\
-  -Wno-unused-parameter -Wno-missing-field-initializers -Wno-write-strings\
-  -Wno-unused-result\
-  \
-  -fdata-sections -ffunction-sections\
-  "
+set(COMPILER_FLAGS
+  ${bsp_compiler_flags}
+  -Icode
+  
+  -D${project_abbrev^^}_INTERNAL
+  -D${project_abbrev^^}_SLOW
+  
+  -O0 -g -ggdb3
+  
+  -Werror -Wall -Wextra -pedantic -Warray-bounds=2
+  
+  -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable
+  -Wno-unused-parameter -Wno-missing-field-initializers -Wno-write-strings
+  -Wno-unused-result
+  
+  -fdata-sections -ffunction-sections
 )
 target_compile_options(${project_abbrev} PRIVATE
-  ${bsp_macro_definitions}
   ${compiler_flags}
 )
-
-add_custom_command(
-  TARGET ${project_abbrev} POST_BUILD
-  COMMAND ${cmake_size} ${project_abbrev}
+target_link_options(tra PRIVATE
+  -specs=nano.specs -lc -lm -lnosys
+  -Wl,--gc-sections
 )
+
 add_custom_command(
   TARGET ${project_abbrev} POST_BUILD
   COMMAND ${cmake_objcopy} ARGS -O binary ${project_abbrev} ${project_abbrev}.bin
   COMMAND ${cmake_objcopy} ARGS -O ihex ${project_abbrev} ${project_abbrev}.hex
 )
 
-include(cmake/CPM.cmake)
-CPMAddPackage("gl:cmocka/cmocka#cmocka-1.1.5")
-
-include(cmake/CMockaTesting.cmake)
-cmocka_add_test(test-${project_abbrev}
-  "code/${project_abbrev}.c;tests/test-${project_abbrev}.c"
-)
+#include(cmake/CMockaTesting.cmake)
+#cmocka_add_test(test-${project_abbrev}
+#  "${bsp_driver_files};code/${project_abbrev}.c;tests/test-${project_abbrev}.c"
+#)
 EOF
 
 }
@@ -131,6 +131,7 @@ create_codefiles() {
   cp "$HOME/prog/personal/scripts/tbc/build" misc/
   cp "$HOME/prog/personal/scripts/tbc/run-tests" misc/
   cp "$HOME/prog/personal/scripts/tbc/flash-runner" misc/
+  cp "$HOME/prog/personal/scripts/tbc/.gdbinit" work/
 cat <<EOF > code/${project_abbrev}.c
 // SPDX-License-Identifier: zlib-acknowledgement
 
@@ -189,50 +190,46 @@ EOF
 chmod +x misc/flash misc/lint
 }
 
+create_gitfiles() {
+cat <<EOF > .gitignore
+# SPDX-License-Identifier: zlib-acknowledgement
+
+*
+
+!.gitignore
+!README.md
+!LICENSE
+!CMakeLists.txt
+
+!cmake/
+!cmake/toolchains
+!cmake/**/*.cmake
+
+!misc/
+!misc/**/*
+
+!code/
+!code/**/*.[chs]
+!code/**/*.ld
+
+!tests/
+!tests/**/*.[ch]
+
+!work/
+!work/.gdbinit
+EOF
+}
+
+create_license
+create_readme
 create_cmakefiles
 create_codefiles
+create_gitfiles
 
-#
-#
-#create_gitfiles() {
-#cat <<EOF > .gitignore
-## SPDX-License-Identifier: zlib-acknowledgement
-#
-#*
-#
-#!.gitignore
-#!README.md
-#!LICENSE
-#!CMakeLists.txt
-#
-#!cmake/
-#!cmake/toolchains
-#!cmake/**/*.cmake
-#
-#!misc/
-#!misc/**/*
-#
-#!code/
-#!code/**/*.[chs]
-#!code/**/*.ld
-#
-#!tests/
-#!tests/**/*.[ch]
-#
-#!work/
-#!work/.gdbinit
-#EOF
-#}
-#
-#
-#create_license
-#create_readme
-#create_cmakefiles
-#create_codefiles
-#create_gitfiles
-#
-printf "======================================================\n"
-printf "Update HAL source,linker,include directories in CMakeLists.txt!\n"
-printf "Update mcu in flash script!\n"
-printf "Update cmake mcu toolchain file!\n"
-printf "======================================================\n"
+dark_blue_fg='\e[01;34m'
+colour_reset='\e[0m'
+printf "${dark_blue_fg}======================================================\n"
+printf "Update BSP driver and compiler flags in CMakeLists.txt!\n"
+printf "Update MCU information in CMake MCU toolchain file!\n"
+printf "Update MCU information in flash script!\n"
+printf "======================================================\n${colour_reset}"

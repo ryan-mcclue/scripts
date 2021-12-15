@@ -39,98 +39,96 @@ cat <<EOF > README.md
 EOF
 }
 
-create_cmakefiles() {
-mkdir -p cmake/toolchains
+create_scripts() {
 
-wget -O cmake/CPM.cmake \
-  https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
-
-cp "$HOME/prog/personal/scripts/tbc/CMockaTesting.cmake" cmake/
-cp "$HOME/prog/personal/scripts/tbc/arm-none-eabi-gcc.cmake" cmake/toolchains
-cp "$HOME/prog/personal/scripts/tbc/arm-none-eabi-gcc-mcu.cmake" cmake/toolchains
-
-bsp_driver_files='${BSP_DRIVER_FILES}'
-bsp_compiler_flags='${BSP_COMPILER_FLAGS}'
-cmake_source_dir='${CMAKE_SOURCE_DIR}'
-cmake_objcopy='${CMAKE_OBJCOPY}'
-compiler_flags='${COMPILER_FLAGS}'
-cat <<EOF > CMakeLists.txt
+cat <<EOF > misc/build
 # SPDX-License-Identifier: zlib-acknowledgement
 
-cmake_minimum_required(VERSION 3.20)
-project(${project_abbrev^^}
-        VERSION 0.0.1
-        DESCRIPTION "${project_name}"
-        LANGUAGES C ASM)
-set_property(GLOBAL PROPERTY C_STANDARD 11)
+mkdir -p build
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE 
-    BOOL "Export compile commands" FORCE)
-
-set(BSP_DRIVER_FILES
+bsp_files="
   BSP/tra/startup_stm32f429xx.s
   BSP/tra/Core/Src/system_stm32f4xx.c
-)
-set(BSP_COMPILER_FLAGS
+"
+bsp_flags="
   -DUSE_HAL_DRIVER
   -DSTM32F429xx
-  -I${cmake_source_dir}/BSP/tra/Core/Inc
-  -I${cmake_source_dir}/BSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc
-  -I${cmake_source_dir}/BSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
-  -I${cmake_source_dir}/BSP/tra/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-  -I${cmake_source_dir}/BSP/tra/Drivers/CMSIS/Include
-) 
+  -IBSP/tra/Core/Inc
+  -IBSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc
+  -IBSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
+  -IBSP/tra/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+  -IBSP/tra/Drivers/CMSIS/Include
+"
 
-add_executable(${project_abbrev})
-target_sources(${project_abbrev} PRIVATE
-  ${bsp_driver_files}
+files="
+  ${bsp_files}
   code/${project_abbrev}.c
-)
-set(COMPILER_FLAGS
-  ${bsp_compiler_flags}
-  -Icode
-  
-  -D${project_abbrev^^}_INTERNAL
-  -D${project_abbrev^^}_SLOW
-  
-  -O0 -g -ggdb3
-  
+"
+
+warning_flags="
   -Werror -Wall -Wextra -pedantic -Warray-bounds=2
-  
   -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable
   -Wno-unused-parameter -Wno-missing-field-initializers -Wno-write-strings
   -Wno-unused-result
-  
-  -fdata-sections -ffunction-sections
-  --specs=rdimon.specs
-)
-target_compile_options(${project_abbrev} PRIVATE
-  ${compiler_flags}
-)
-target_link_options(tra PRIVATE
-  --specs=rdimon.specs -lc -lm -lrdimon
-  -Wl,--gc-sections
-)
+"
 
-add_custom_command(
-  TARGET ${project_abbrev} POST_BUILD
-  COMMAND ${cmake_objcopy} ARGS -O binary ${project_abbrev} ${project_abbrev}.bin
-  COMMAND ${cmake_objcopy} ARGS -O ihex ${project_abbrev} ${project_abbrev}.hex
-)
+dev_type_flags="
+  -D${project_abbrev^^}_INTERNAL
+  -D${project_abbrev^^}_SLOW
+  -O0 -g -ggdb3
+"
 
-#include(cmake/CMockaTesting.cmake)
-#cmocka_add_test(test-${project_abbrev}
-#  "${bsp_driver_files};code/${project_abbrev}.c;tests/test-${project_abbrev}.c"
-#)
+arch_flags="
+
+"
+
+nontest_flags="
+  --specs=nano.specs -lc -lm -lnosys
+"
+test_flags="
+  --specs=rdimon.specs -lc -lm -lrdimon -lcmocka
+"
+
+common_flags="
+  $arch_flags $warning_flags $dev_type_flags $bsp_flags
+  -Icode
+  -fdata-sections -ffunction-sections -Wl,--gc-sections
+"
+
+# TODO(Ryan): Stop here if compiling failed
+arm-none-eabi-gcc "$common_flags $nontest_flags
+  $bsp_files $files
+"
+
+arm-none-eabi-objcopy -O binary build/tra.elf build/tra.bin
+arm-none-eabi-objcopy -O ihex build/tra.elf build/tra.hex
+arm-none-eabi-size build/tra.bin
+
+arm-none-eabi-gcc "$common_flags $test_flags"
+
 EOF
+cat <<EOF > misc/flash
+device STM32F429ZI 
+si 1
+speed 4000
+loadbin build/${project_abbrev}.bin 0x8000000
+r
+g
+qc
+EOF
+cat <<EOF > misc/lint
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement 
 
+EOF
+chmod +x misc/flash misc/lint
 }
 
 create_codefiles() {
   mkdir -p code tests misc work build
-  cp "$HOME/prog/personal/scripts/tbc/create" misc/
   cp "$HOME/prog/personal/scripts/tbc/build" misc/
   cp "$HOME/prog/personal/scripts/tbc/run-tests" misc/
+  cp "$HOME/prog/personal/scripts/tbc/run-qemu" misc/
   cp "$HOME/prog/personal/scripts/tbc/flash-runner" misc/
   cp "$HOME/prog/personal/scripts/tbc/.gdbinit" work/
 cat <<EOF > code/${project_abbrev}.c
@@ -187,21 +185,6 @@ main(void)
   return cmocka_res;
 }
 EOF
-cat <<EOF > misc/flash
-device STM32F429ZI 
-si 1
-speed 4000
-loadbin build/${project_abbrev}.bin 0x8000000
-r
-g
-qc
-EOF
-cat <<EOF > misc/lint
-#!/bin/sh
-# SPDX-License-Identifier: zlib-acknowledgement 
-
-EOF
-chmod +x misc/flash misc/lint
 }
 
 create_gitfiles() {
@@ -213,11 +196,6 @@ cat <<EOF > .gitignore
 !.gitignore
 !README.md
 !LICENSE
-!CMakeLists.txt
-
-!cmake/
-!cmake/toolchains
-!cmake/**/*.cmake
 
 !misc/
 !misc/**/*
@@ -236,14 +214,13 @@ EOF
 
 create_license
 create_readme
-create_cmakefiles
+create_scripts
 create_codefiles
 create_gitfiles
 
 dark_blue_fg='\e[01;34m'
 colour_reset='\e[0m'
 printf "${dark_blue_fg}======================================================\n"
-printf "Update BSP driver and compiler flags in CMakeLists.txt!\n"
-printf "Update MCU information in CMake MCU toolchain file!\n"
+printf "Update BSP and MCU flags in misc/build!\n"
 printf "Update MCU information in flash script!\n"
 printf "======================================================\n${colour_reset}"

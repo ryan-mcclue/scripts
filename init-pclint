@@ -1,0 +1,21 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+# IMPORTANT(Ryan): Run inside top-level directory where pclint unzipped
+rm -f PC-lint-PLUS-eval-license.pdf
+mv linux pclint
+mkdir pclint/bin
+
+mv pclint/pclp64_linux pclint/bin
+mv "$HOME/Downloads/eval-license.lic" pclint/bin
+
+pip3 install regex pyyaml
+
+./pclint/config/pclp_config.py --compiler=gcc \
+  --compiler-bin="$HOME/prog/cross/arm/gcc-arm-none-eabi-10.3-2021.07/bin/arm-none-eabi-gcc" \
+  --compiler-options="-std=gnu11" \
+  --config-output-lnt-file=pclint/co-gcc.lnt \
+  --config-output-header-file=co-gcc.h \
+  --generate-compiler-config
+
+mv co-gcc.h pclint/

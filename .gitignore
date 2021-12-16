@@ -19,6 +19,7 @@
 !git-squash
 !c-tag
 !create-embedded
+!init-pclint
 
 !tbc/
 !tbc/**/*

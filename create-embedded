@@ -39,188 +39,33 @@ cat <<EOF > README.md
 EOF
 }
 
-create_scripts() {
-
-cat <<EOF > misc/build
-# SPDX-License-Identifier: zlib-acknowledgement
-
-mkdir -p build
-
-bsp_flags="
-  -DUSE_HAL_DRIVER
-  -DSTM32F429xx
-  -IBSP/tra/Core/Inc
-  -IBSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc
-  -IBSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
-  -IBSP/tra/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-  -IBSP/tra/Drivers/CMSIS/Include
-  -TBSP/tra/STM32F429ZITx_FLASH.ld
-"
-
-warning_flags="
-  -Werror -Wall -Wextra -pedantic -Warray-bounds=2
-  -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable
-  -Wno-unused-parameter -Wno-missing-field-initializers -Wno-write-strings
-  -Wno-unused-result
-"
-
-dev_type_flags="
-  -D${project_abbrev^^}_INTERNAL
-  -D${project_abbrev^^}_SLOW
-  -O0 -g -ggdb3
-"
-
-arch_flags="
-  -mcpu=cortex-m4 -mthumb -L$HOME/cross/arm/lib
-"
-
-nontest_flags="
-  -mfloat-abi=hard -mfpu=fpv4-sp-d16
-  --specs=nano.specs -lc -lm -lnosys
-"
-
-test_flags="
-  -DTESTING
-  -mfloat-abi=soft
-  --specs=rdimon.specs -lc -lm -lrdimon -lcmocka
-"
-
-common_flags="
-  $arch_flags $warning_flags $dev_type_flags $bsp_flags
-  -Icode
-  -fdata-sections -ffunction-sections -Wl,--gc-sections
-"
-
-# TODO(Ryan): Stop here if compiling failed
-arm-none-eabi-gcc "$common_flags $nontest_flags
-  BSP/tra/startup_stm32f429xx.s
-  BSP/tra/Core/Src/system_stm32f4xx.c
-  code/tra.c
-  -o build/tra.elf
-"
-
-arm-none-eabi-objcopy -O binary build/tra.elf build/tra.bin
-arm-none-eabi-objcopy -O ihex build/tra.elf build/tra.hex
-arm-none-eabi-size build/tra.bin
-
-arm-none-eabi-gcc "$common_flags $test_flags
-  BSP/tra/startup_stm32f429xx.s
-  BSP/tra/Core/Src/SFPU-system_stm32f4xx.c
-  code/tra.c
-  tests/qemu-exit.c
-  tests/test-tra.c
-  -o build/test-tra.elf
-"
-
-EOF
-cat <<EOF > misc/flash
-device STM32F429ZI 
-si 1
-speed 4000
-loadbin build/${project_abbrev}.bin 0x8000000
-r
-g
-qc
-EOF
-cat <<EOF > misc/lint
-#!/bin/sh
-# SPDX-License-Identifier: zlib-acknowledgement 
-
-EOF
-chmod +x misc/flash misc/lint
-}
-
-create_codefiles() {
+copy_codefiles() {
   mkdir -p code tests misc work build
-  cp "$HOME/prog/personal/scripts/tbc/build" misc/
-  cp "$HOME/prog/personal/scripts/tbc/run-tests" misc/
-  cp "$HOME/prog/personal/scripts/tbc/run-qemu" misc/
-  cp "$HOME/prog/personal/scripts/tbc/flash-runner" misc/
+  cp "$HOME/prog/personal/scripts/tbc/tem.c" code/
+
   cp "$HOME/prog/personal/scripts/tbc/qemu-arm-exit.c" tests/
+  cp "$HOME/prog/personal/scripts/tbc/test-tem.c" tests/
+
+  cp "$HOME/prog/personal/scripts/tbc/build" misc/
+  cp "$HOME/prog/personal/scripts/tbc/run-qemu" misc/
+  cp "$HOME/prog/personal/scripts/tbc/run-tests" misc/
+  cp "$HOME/prog/personal/scripts/tbc/flash" misc/
+  cp "$HOME/prog/personal/scripts/tbc/flash-runner" misc/
+  cp "$HOME/prog/personal/scripts/tbc/lint" misc/
+
   cp "$HOME/prog/personal/scripts/tbc/.gdbinit" work/
-cat <<EOF > code/${project_abbrev}.c
-// SPDX-License-Identifier: zlib-acknowledgement
 
-#if defined(TESTING)
-  int testable_main(void)
-#else
-  int main(void)
-#endif
-{
-  return 0;
-}
-EOF
-
-cat <<EOF > tests/test-${project_abbrev}.c
-// SPDX-License-Identifier: zlib-acknowledgement
-
-#include <stdarg.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <setjmp.h>
-#include <limits.h>
-#include <cmocka.h>
-
-extern void qemu_arm_exit(void);
-
-extern int testable_main(void);
-
-void
-test_${project_abbrev}(void **state)
-{
-  assert_int_equal(testable_main(), 0);
-}
-
-int 
-main(void)
-{
-	const struct CMUnitTest tests[] = {
-    cmocka_unit_test(test_${project_abbrev}),
-  };
-
-  int cmocka_res = cmocka_run_group_tests(tests, NULL, NULL);
-
-  qemu_arm_exit();
-
-  return cmocka_res;
-}
-EOF
-}
-
-create_gitfiles() {
-cat <<EOF > .gitignore
-# SPDX-License-Identifier: zlib-acknowledgement
-
-*
-
-!.gitignore
-!README.md
-!LICENSE
-
-!misc/
-!misc/**/*
-
-!code/
-!code/**/*.[chs]
-!code/**/*.ld
-
-!tests/
-!tests/**/*.[ch]
-
-!work/
-!work/.gdbinit
-EOF
+  cp "$HOME/prog/personal/scripts/tbc/.gitignore" .
 }
 
 create_license
 create_readme
-create_scripts
-create_codefiles
-create_gitfiles
+copy_codefiles
 
 dark_blue_fg='\e[01;34m'
 colour_reset='\e[0m'
 printf "${dark_blue_fg}======================================================\n"
 printf "Update BSP and MCU flags in misc/build!\n"
+printf "Disable BSP FPU startup code for testing builds!\n"
 printf "Update MCU information in flash script!\n"
 printf "======================================================\n${colour_reset}"

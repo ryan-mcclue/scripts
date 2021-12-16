@@ -20,6 +20,7 @@
 !c-tag
 !create-embedded
 !init-pclint
+!arm-none-eabi-gcc-mcu.cmake
 
 !tbc/
 !tbc/**/*

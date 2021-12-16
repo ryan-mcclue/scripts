@@ -29,9 +29,14 @@ dev_type_flags="
   -O0 -g -ggdb3
 "
 
-# cmake -DBUILD_STATIC_LIB=ON -DWITH_STATIC_LIB=ON -CMAKE_INSTALL_PREFIX=build -Bbuild
+# TODO(Ryan): Require specifying toolchain file
+# NOTE(Ryan): General CMake compilation procedure
+# > cmake -DCMAKE_INSTALL_PREFIX=$HOME/prog/cross/arm \
+#     -DBUILD_STATIC_LIB=ON -DWITH_STATIC_LIB=ON -Bbuild
+# > cmake --build build/
+# > cmake --install build/
 arch_flags="
-  -mcpu=cortex-m4 -mthumb -I$HOME/cross/arm/lib -L$HOME/cross/arm/lib
+  -mcpu=cortex-m4 -mthumb -I$HOME/prog/cross/arm/include -L$HOME/prog/cross/arm/lib
 "
 
 nontest_flags="
@@ -52,19 +57,17 @@ common_flags="
   -fdata-sections -ffunction-sections -Wl,--gc-sections
 "
 
-arm-none-eabi-gcc "$common_flags $nontest_flags
-  code/tem.c
+arm-none-eabi-gcc $common_flags $nontest_flags \
+  code/tem.c \
   -o build/tem.elf
-"
+
 test $? -ne 0 && exit 1
 
 arm-none-eabi-objcopy -O binary build/tem.elf build/tem.bin
 arm-none-eabi-objcopy -O ihex build/tem.elf build/tem.hex
-arm-none-eabi-size build/tem.bin
 
-arm-none-eabi-gcc "$common_flags $test_flags
-  code/tem.c
-  tests/qemu-exit.c
-  tests/test-tem.c
+arm-none-eabi-gcc $common_flags $test_flags \
+  code/tem.c \
+  tests/qemu-arm-exit.c \
+  tests/test-tem.c \
   -o build/test-tem.elf
-"

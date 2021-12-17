@@ -29,9 +29,10 @@ dev_type_flags="
   -O0 -g -ggdb3
 "
 
-# TODO(Ryan): Require specifying toolchain file
 # NOTE(Ryan): General CMake compilation procedure
-# > cmake -DCMAKE_INSTALL_PREFIX=$HOME/prog/cross/arm \
+# > cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/prog/personal/scripts/arm-none-eabi-gcc-mcu.cmake \
+#     -DCMAKE_INSTALL_PREFIX=$HOME/prog/cross/arm 
+#     -DCMAKE_BUILD_TYPE=Debug \
 #     -DBUILD_STATIC_LIB=ON -DWITH_STATIC_LIB=ON -Bbuild
 # > cmake --build build/
 # > cmake --install build/
@@ -41,13 +42,13 @@ arch_flags="
 
 nontest_flags="
   -mfloat-abi=hard -mfpu=fpv4-sp-d16
-  --specs=nano.specs -lc -lm -lnosys
+  --specs=nano.specs
 "
 
 test_flags="
   -DTESTING
   -mfloat-abi=soft
-  --specs=rdimon.specs -lc -lm -lrdimon -lcmocka
+  --specs=rdimon.specs
 "
 
 common_flags="
@@ -59,7 +60,7 @@ common_flags="
 
 arm-none-eabi-gcc $common_flags $nontest_flags \
   code/tem.c \
-  -o build/tem.elf
+  -o build/tem.elf -lc -lm -lnosys
 
 test $? -ne 0 && exit 1
 
@@ -70,4 +71,4 @@ arm-none-eabi-gcc $common_flags $test_flags \
   code/tem.c \
   tests/qemu-arm-exit.c \
   tests/test-tem.c \
-  -o build/test-tem.elf
+  -o build/test-tem.elf -lc -lm -lrdimon -lcmocka-static

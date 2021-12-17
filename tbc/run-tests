@@ -5,7 +5,7 @@ for test_binary in $(find build/ -maxdepth 1 -type f -iname "test-*"); do
   export TEST_FILE_NAME="${test_binary}" 
   script --quiet --command misc/run-qemu >/dev/null
   # TODO(Ryan): Process output here to determine if error occurred and terminate
-  grep '(qemu)' typescript
+  cat typescript
 done
 
 # NOTE(Ryan): QEMU variants:

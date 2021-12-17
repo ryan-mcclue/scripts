@@ -19,11 +19,11 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CPU_NAME cortex-m4)
 
 set(CMAKE_C_FLAGS_INIT
-  "-mcpu=cortex-m4 -mthumb -mfloat-abi=soft -fdata-sections -ffunction-sections"
+  "-mcpu=cortex-m4 -mthumb -mfloat-abi=soft -fdata-sections -ffunction-sections --specs=rdimon.specs -lgcc -lc -lm -lrdimon"
 	CACHE
 	INTERNAL "Default C compiler flags.")
 set(CMAKE_CXX_FLAGS_INIT
-  "-mcpu=cortex-m4 -mthumb -mfloat-abi=soft -fdata-sections -ffunction-sections"
+  "-mcpu=cortex-m4 -mthumb -mfloat-abi=soft -fdata-sections -ffunction-sections --specs=rdimon.specs -lgcc -lc -lm -lrdimon"
 	CACHE
 	INTERNAL "Default C++ compiler flags.")
 set(CMAKE_ASM_FLAGS_INIT
@@ -31,6 +31,6 @@ set(CMAKE_ASM_FLAGS_INIT
 	CACHE
 	INTERNAL "Default ASM compiler flags.")
 set(CMAKE_EXE_LINKER_FLAGS_INIT
-  "-Wl, --gc-sections"
+  "--specs=rdimon.specs -lgcc -lc -lm -lrdimon -Wl,--gc-sections"
 	CACHE
 	INTERNAL "Default linker flags.")

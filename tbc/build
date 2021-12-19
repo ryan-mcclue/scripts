@@ -29,26 +29,23 @@ dev_type_flags="
   -O0 -g -ggdb3
 "
 
-# NOTE(Ryan): General CMake compilation procedure
-# > cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/prog/personal/scripts/arm-none-eabi-gcc-mcu.cmake \
-#     -DCMAKE_INSTALL_PREFIX=$HOME/prog/cross/arm 
-#     -DCMAKE_BUILD_TYPE=Debug \
-#     -DBUILD_STATIC_LIB=ON -DWITH_STATIC_LIB=ON -Bbuild
-# > cmake --build build/
-# > cmake --install build/
 arch_flags="
   -mcpu=cortex-m4 -mthumb -I$HOME/prog/cross/arm/include -L$HOME/prog/cross/arm/lib
 "
 
-nontest_flags="
+target_flags="
   -mfloat-abi=hard -mfpu=fpv4-sp-d16
-  --specs=nano.specs
+  --specs=nano.specs -lc -lm -lnosys
+"
+
+simulator_flags="
+  -mfloat-abi=soft
+  --specs=rdimon.specs -lc -lm -lrdimon
 "
 
 test_flags="
-  -DTESTING
-  -mfloat-abi=soft
-  --specs=rdimon.specs
+  -DTRA_TESTING
+  ${simulator_flags}
 "
 
 common_flags="
@@ -58,11 +55,15 @@ common_flags="
   -fdata-sections -ffunction-sections -Wl,--gc-sections
 "
 
-arm-none-eabi-gcc $common_flags $nontest_flags \
+arm-none-eabi-gcc $common_flags $target_flags \
   code/tem.c \
   -o build/tem.elf -lc -lm -lnosys
-
 test $? -ne 0 && exit 1
+
+arm-none-eabi-gcc $common_flags $simulator_flags \
+  code/tem.c \
+  -o build/simulator-tem.elf -lc -lm -lrdimon
+
 
 arm-none-eabi-objcopy -O binary build/tem.elf build/tem.bin
 arm-none-eabi-objcopy -O ihex build/tem.elf build/tem.hex

@@ -65,6 +65,8 @@ copy_codefiles
 dark_blue_fg='\e[01;34m'
 colour_reset='\e[0m'
 printf "${dark_blue_fg}======================================================\n"
+printf "Run ctags on BSP!\n"
+printf "Update qemu shortcut in simulate-input.c!\n"
 printf "Update BSP and MCU flags in misc/build!\n"
 printf "Disable BSP FPU startup code for testing builds!\n"
 printf "Update MCU information in flash script!\n"

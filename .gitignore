@@ -2,6 +2,8 @@
 
 *
 
+!*/
+
 !.gitignore
 !README.md
 !LICENSE
@@ -19,6 +21,7 @@
 !git-squash
 !c-tag
 !create-embedded
+!create-desktop
 !init-pclint
 !arm-none-eabi-gcc-mcu.cmake
 

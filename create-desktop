@@ -1,0 +1,62 @@
+#!/bin/bash
+# SPDX-License-Identifier: zlib-acknowledgement
+
+test ! -n "${1}" -o ! -n "${2}" && printf "usage: ${0##*/} <project-abbrev> '<project-name>'\n" \
+  && exit 1
+project_abbrev="${1}"
+project_name="${2}"
+
+create_license() {
+cat <<EOF > LICENSE
+zlib License
+
+(C) $(date +%Y) Ryan McClue 
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+EOF
+}
+
+create_readme() {
+cat <<EOF > README.md
+<!-- SPDX-License-Identifier: zlib-acknowledgement -->
+
+# ${project_abbrev^^} (${project_name})
+> ![Github](https://img.shields.io/github/license/ryan-mcclue/${project_abbrev})
+EOF
+}
+
+copy_codefiles() {
+  mkdir -p code misc work build
+  cp "$HOME/prog/personal/scripts/tbc/desktop.cpp" code/${project_abbrev}
+
+  cp "$HOME/prog/personal/scripts/tbc/desktop-build" misc/build
+
+  cp "$HOME/prog/personal/scripts/tbc/.gdbinit" work/
+
+  cp "$HOME/prog/personal/scripts/tbc/.gitignore.copy" .gitignore 
+}
+
+create_license
+create_readme
+copy_codefiles
+
+dark_blue_fg='\e[01;34m'
+colour_reset='\e[0m'
+printf "${dark_blue_fg}======================================================\n"
+printf "Update project specifics in misc/build and README!\n"
+printf "Update qemu shortcut in simulate-input.c!\n"
+printf "======================================================\n${colour_reset}"

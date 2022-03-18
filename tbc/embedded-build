@@ -16,7 +16,7 @@ bsp_flags="
   BSP/tra/Core/Src/system_stm32f4xx.c
 "
 
-warning_flags="
+ignored_warning_flags="
   -Werror -Wall -Wextra -pedantic -Warray-bounds=2
   -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable
   -Wno-unused-parameter -Wno-missing-field-initializers -Wno-write-strings
@@ -49,7 +49,7 @@ test_flags="
 "
 
 common_flags="
-  $arch_flags $warning_flags $dev_type_flags $bsp_flags
+  $arch_flags $ignored_warning_flags $dev_type_flags $bsp_flags
   -std=gnu11
   -Icode
   -fdata-sections -ffunction-sections -Wl,--gc-sections

@@ -1,0 +1,7 @@
+# IMPORTANT(Ryan): To allow gdb to source this project local .gdbinit, inside of top-level .gdbinit:
+# set auto-load safe-path work/
+# set auto-load local-gdbinit on
+
+set disassembly-flavor intel
+break __bp
+break __ebp

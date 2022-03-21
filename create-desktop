@@ -22,7 +22,7 @@ freely, subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not
    claim that you wrote the original software. If you use this software
-   in a product, an acknowledgment in the product documentation would be
+   in a product, anv acknowledgment in the product documentation would be
    appreciated but is not required.
 2. Altered source versions must be plainly marked as such, and must not be
    misrepresented as being the original software.
@@ -42,10 +42,11 @@ EOF
 copy_codefiles() {
   mkdir -p code misc work build
   cp "$HOME/prog/personal/scripts/tbc/desktop.cpp" code/${project_abbrev}
+  cp "$HOME/prog/personal/scripts/tbc/desktop-breakpoints.h" code/breakpoints.h
 
   cp "$HOME/prog/personal/scripts/tbc/desktop-build" misc/build
 
-  cp "$HOME/prog/personal/scripts/tbc/.gdbinit" work/
+  cp "$HOME/prog/personal/scripts/tbc/.gdbinit-desktop" work/.gdbinit
 
   cp "$HOME/prog/personal/scripts/tbc/.gitignore.copy" .gitignore 
 }

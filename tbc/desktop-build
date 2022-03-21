@@ -1,5 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: zlib-acknowledgement
+set -e
 
 mkdir -p build
 
@@ -16,8 +17,12 @@ common_flags="$ignored_warnings -Icode -fno-exceptions -fno-rtti -std=c++2a -Wer
 
 libraries=""
 
+ctime -begin misc/ubuntu-hhf.ctm
+
 g++ $common_compiler_flags $dev_type_flags \
   code/ubuntu-hhf.cpp -o build/ubuntu-hhf \
   $libraries
+
+ctime -end misc/ubuntu-hhf.ctm
 
 ./build/ubuntu-hhf

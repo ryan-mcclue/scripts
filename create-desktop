@@ -6,6 +6,8 @@ test ! -n "${1}" -o ! -n "${2}" && printf "usage: ${0##*/} <project-abbrev> '<pr
 project_abbrev="${1}"
 project_name="${2}"
 
+mkdir -p "$project_abbrev" && cd "$project_abbrev"
+
 create_license() {
 cat <<EOF > LICENSE
 zlib License
@@ -41,10 +43,10 @@ EOF
 
 copy_codefiles() {
   mkdir -p code misc work build
-  cp "$HOME/prog/personal/scripts/tbc/desktop.cpp" code/${project_abbrev}
-  cp "$HOME/prog/personal/scripts/tbc/desktop-breakpoints.h" code/breakpoints.h
+  cp "$HOME/prog/personal/scripts/tbc/desktop.cpp" code/${project_abbrev}.cpp
 
   cp "$HOME/prog/personal/scripts/tbc/desktop-build" misc/build
+  chmod +x misc/build
 
   cp "$HOME/prog/personal/scripts/tbc/.gdbinit-desktop" work/.gdbinit
 
@@ -58,6 +60,6 @@ copy_codefiles
 dark_blue_fg='\e[01;34m'
 colour_reset='\e[0m'
 printf "${dark_blue_fg}======================================================\n"
-printf "Update project specifics in misc/build and README!\n"
+printf "Update project specifics in misc/build, code/* and README!\n"
 printf "Update debugger keyboard shortcut specifics in sim/simulate-input.c!\n"
 printf "======================================================\n${colour_reset}"

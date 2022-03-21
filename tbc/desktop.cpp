@@ -55,13 +55,18 @@ typedef double r64;
 int
 main(int argc, char *argv[])
 {
-#if defined(HHF_INTERNAL)
-  if (argc > 1 && strcmp(argv[1], "-debugger"))
+#if defined(RAY_INTERNAL)
+  if (argc > 1 && strcmp(argv[1], "-debugger") == 0)
   {
     __bp = __bp_debugger;
     __ebp = __ebp_debugger;
   }
 #endif
+
+  uint x0 = 5;
+  uint x1 = 10;
+  r32 blend = 0.5f;
+  r32 lerp = ((x1 - x0) * blend) + x0;
 
   BP();
 

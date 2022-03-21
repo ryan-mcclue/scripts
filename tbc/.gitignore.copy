@@ -10,11 +10,8 @@
 !misc/**/*
 
 !code/
-!code/**/*.[chs]
-!code/**/*.ld
+!code/**/*.cpp
+!code/**/*.h
 
-!tests/
-!tests/**/*.[ch]
-
-!work/
-!work/.gdbinit
+!run/
+!run/**/*

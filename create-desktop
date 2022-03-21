@@ -42,13 +42,11 @@ EOF
 }
 
 copy_codefiles() {
-  mkdir -p code misc work build
+  mkdir -p code misc run build
   cp "$HOME/prog/personal/scripts/tbc/desktop.cpp" code/${project_abbrev}.cpp
 
   cp "$HOME/prog/personal/scripts/tbc/desktop-build" misc/build
   chmod +x misc/build
-
-  cp "$HOME/prog/personal/scripts/tbc/.gdbinit-desktop" work/.gdbinit
 
   cp "$HOME/prog/personal/scripts/tbc/.gitignore.copy" .gitignore 
 }

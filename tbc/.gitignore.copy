@@ -11,7 +11,7 @@
 
 !code/
 !code/**/*.cpp
-!code/**/*.h
+!code/**/*.[chS]
 
 !run/
 !run/**/*

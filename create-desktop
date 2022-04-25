@@ -1,15 +1,15 @@
 #!/bin/bash
 # SPDX-License-Identifier: zlib-acknowledgement
 
-test ! -n "${1}" -o ! -n "${2}" && printf "usage: ${0##*/} <project-abbrev> '<project-name>'\n" \
-  && exit 1
+[ ! $# -ge 2 ] && printf "usage: ${0##*/} <project-abbrev> '<project-name>'\n" && exit 1
+
 project_abbrev="${1}"
 project_name="${2}"
 
-mkdir -p "$project_abbrev" && cd "$project_abbrev"
+mkdir -p "$project_abbrev"
 
 create_license() {
-cat <<EOF > LICENSE
+cat <<EOF > "${project_abbrev}/LICENSE"
 zlib License
 
 (C) $(date +%Y) Ryan McClue 
@@ -33,7 +33,7 @@ EOF
 }
 
 create_readme() {
-cat <<EOF > README.md
+cat <<EOF > "${project_abbrev}/README.md"
 <!-- SPDX-License-Identifier: zlib-acknowledgement -->
 
 # ${project_abbrev^^} (${project_name})
@@ -42,13 +42,15 @@ EOF
 }
 
 copy_codefiles() {
-  mkdir -p code misc run build
-  cp "$HOME/prog/personal/scripts/tbc/desktop.cpp" code/${project_abbrev}.cpp
+  cp "$HOME/prog/personal/scripts/desktop-template" "${project_abbrev}"
 
-  cp "$HOME/prog/personal/scripts/tbc/desktop-build" misc/build
-  chmod +x misc/build
+  # TODO(Ryan): Run some name translation?
 
-  cp "$HOME/prog/personal/scripts/tbc/.gitignore.copy" .gitignore 
+  mv "${project_abbrev}/code/desktop.cpp" "${project_abbrev}/code/${project_abbrev}.cpp" 
+
+  mv "${project_abbrev}/.gitignore.copy" "${project_abbrev}/.gitignore"
+
+  # chmod +x misc/build
 }
 
 create_license

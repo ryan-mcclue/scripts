@@ -27,3 +27,6 @@
 
 !tbc/
 !tbc/**/*
+
+!desktop-template/
+!desktop-template/**/*

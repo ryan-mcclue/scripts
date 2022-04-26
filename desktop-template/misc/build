@@ -15,7 +15,7 @@ common_flags="$ignored_warning_flags -Icode -fno-exceptions -fno-rtti -std=c++2a
   -Werror -Wall -Wextra -pedantic -Warray-bounds=2 
   -march=native -ffunction-sections -fdata-sections -Wl,--gc-sections"
 
-libraries=""
+libraries="-lm -lSDL2"
 
 ctime -begin misc/desktop.ctm
 
@@ -25,6 +25,6 @@ g++ $common_flags $dev_type_flags \
 
 ctime -end misc/desktop.ctm
 
-pushd run
-../build/desktop
-popd
+#pushd run
+#../build/desktop
+#popd

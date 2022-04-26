@@ -5,6 +5,28 @@
 #include "math.h"
 #include "vector.h"
 
+#include "desktop.h"
+
+#include <SDL2/SDL.h>
+
+INTERNAL void
+update_and_render(BackBuffer *back_buffer, Input *input)
+{
+  u32 *pixels = back_buffer->pixels;
+
+  for (u32 y = 0;
+       y < back_buffer_dim.h;
+       ++y)
+  {
+    for (u32 x = 0;
+        x < back_buffer_dim.w;
+        ++x)
+    {
+      *pixels++ = 0xff0000ff;     
+    }
+  }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -14,98 +36,111 @@ main(int argc, char *argv[])
   {
     V2 window_dim = {1280, 720};
     SDL_Window *window = SDL_CreateWindow("Name", SDL_WINDOWPOS_CENTERED, 
-                         SDL_WINDOWPOS_CENTERED, window_dim.w, window_dim.h, 0);
-
-    // TODO(Ryan): Add SDL_RENDERER_PRESENTVSYNC flag when doing animations
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
-
-    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-
-    // IMPORTANT(Ryan): Mouse values line up to this logical width and height
-    SDL_RenderSetLogicalSize(renderer, window_dim.w, window_dim.h);
-    SDL_RenderSetIntegerScale(renderer, 1);
-
-    V2 back_buffer_dim = window_dim;
-    SDL_Texture *back_buffer = SDL_CreateTexture(renderer, 
-                               SDL_PIXELFORMAT_RGBA8888, 
-                               SDL_TEXTUREACCESS_STREAMING,
-                               back_buffer_dim.w, back_buffer_dim.h);
-
-    u32 *pixels = malloc(back_buffer_dim.w * back_buffer_dim.h * sizeof(u32));
-
-    BackBuffer back_buffer = {};
-
-    bool want_to_run = true;
-    while (want_to_run)
+                          SDL_WINDOWPOS_CENTERED, window_dim.w, window_dim.h, 
+                          SDL_WINDOW_RESIZABLE);
+    if (window != NULL)
     {
-      SDL_Event event = {};
-      while (SDL_PollEvent(&event))
+      SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+      if (renderer != NULL)
       {
-        if (event.type == SDL_QUIT)
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+        // IMPORTANT(Ryan): Mouse values line up to this logical width and height
+        SDL_RenderSetLogicalSize(renderer, window_dim.w, window_dim.h);
+        SDL_RenderSetIntegerScale(renderer, 1);
+
+        V2 back_buffer_dim = window_dim;
+        SDL_Texture *back_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, 
+                                                             SDL_TEXTUREACCESS_STREAMING,
+                                                             back_buffer_dim.w, 
+                                                             back_buffer_dim.h);
+        if (back_buffer_texture != NULL)
         {
-          want_to_run = false;
+          u32 *back_buffer_pixels = malloc(back_buffer_dim.w * back_buffer_dim.h * sizeof(u32));
+          if (back_buffer_pixels != NULL)
+          {
+            BackBuffer back_buffer = {};
+            back_buffer.texture = back_buffer_texture;
+            back_buffer.dim = back_buffer_dim;
+
+            Input input = {};
+
+            bool want_to_run = true;
+            while (want_to_run)
+            {
+              SDL_Event event = {};
+              while (SDL_PollEvent(&event))
+              {
+                if (event.type == SDL_QUIT)
+                {
+                  want_to_run = false;
+                }
+              }
+
+              SDL_RenderClear(renderer);
+
+              u32 pitch = 0;
+              if (SDL_LockTexture(back_buffer_texture, NULL, (void **)&back_buffer->pixels, &pitch) != 0)
+              {
+                update_and_render(&back_buffer, &input);
+                
+                SDL_UnlockTexture(back_buffer_texture);
+
+                SDL_RenderCopy(renderer, back_buffer_texture, NULL, NULL);
+              }
+              else
+              {
+                BP_MSG(SDL_GetError());
+              }
+      
+              SDL_RenderPresent(renderer);
+            }
+          }
+          else
+          {
+            EBP();
+            SDL_DestroyTexture(back_buffer_texture);
+            SDL_DestroyRenderer(renderer);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+          }
+        }
+        else
+        {
+          BP_MSG(SDL_GetError());
+          SDL_DestroyRenderer();
+          SDL_DestroyWindow();
+          SDL_Quit();
+          return 1;
         }
       }
-
-     // Set every pixel to white.
-        for (int y = 0; y < height; ++y)
-        {
-            for (int x = 0; x < width; ++x)
-            {
-                pixels[x + y * width] =
-                    SDL_MapRGBA(window_surface->format, 200, 100, 250, 255);
-            }
-        }
-
+      else
+      {
+        BP_MSG(SDL_GetError());
+        SDL_DestroyWindow();
+        SDL_Quit();
+        return 1;
+      }
     }
-
-    SDL_RenderClear(Renderer);
-    SDL_UpdateTexture(screen_texture, NULL, pixels, width * 4);
-    SDL_RenderCopy(renderer, screen_texture, NULL, NULL);
-    SDL_RenderPresent(Renderer);
+    else
+    {
+      BP_MSG(SDL_GetError());
+      SDL_Quit();
+      return 1;
+    }
   }
   else
   {
-
+    BP_MSG(SDL_GetError());
+    return 1;
   }
-        SDL_DestroyTexture(*ppTexture);
 
-        SDL_DestroyRenderer(*ppRenderer);
-
-        SDL_DestroyWindow(*ppWindow);
-        
-        SDL_Quit();
+  SDL_DestroyTexture(back_buffer_texture);
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 
   return 0;
 }
 
-
-    // The Back Buffer texture may be stored with an extra bit of width (pitch) on the video card in order to properly
-    // align it in VRAM should the width not lie on the correct memory boundary (usually four bytes).
-    int32_t pitch = 0;
-
-    // This will hold a pointer to the memory position in VRAM where our Back Buffer texture lies
-    uint32_t* pPixelBuffer = nullptr;
-
-    // Lock the memory in order to write our Back Buffer image to it
-    if (!SDL_LockTexture(pTexture, NULL, (void**)&pPixelBuffer, &pitch))
-    {
-        // The pitch of the Back Buffer texture in VRAM must be divided by four bytes
-        // as it will always be a multiple of four
-        pitch /= sizeof(uint32_t);
-
-        // Fill texture with randomly colored pixels
-        for (uint32_t i = 0; i < g_kRenderWidth * g_kRenderHeight; ++i)
-            pPixelBuffer[i] = ARGB(FastRand() % 256, FastRand() % 256, FastRand() % 256, 255);
-
-        // Unlock the texture in VRAM to let the GPU know we are done writing to it
-        SDL_UnlockTexture(pTexture);
-
-        // Copy our texture in VRAM to the display framebuffer in VRAM
-        SDL_RenderCopy(pRenderer, pTexture, NULL, NULL);
-
-        // Copy the VRAM framebuffer to the display
-        SDL_RenderPresent(pRenderer);
-
-        return 0;
-    }

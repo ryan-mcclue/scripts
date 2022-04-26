@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: zlib-acknowledgement
 #pragma once
 
-// NOTE(Ryan): Not too restrictive, considering 98.72% have SSE4.2 according to
-// Steam Hardware Survey as of March 2022. This gives us gather instructions.
-#if defined(__SSE4_2__)
+// NOTE(Ryan): Steam Hardware Survey as of March 2022: 
+//  SSE4.1 (99.06%)
+//  AVX (95.01%) 
+// This gives us load instructions.
+#if defined(__SSE4_1__) && defined(__AVX__)
 #define LANE_WIDTH 4
 struct LaneR32
 {
@@ -16,8 +18,16 @@ struct LaneU32
 };
 
 #define LANE_R32_ADD(a, b) _mm_add_ps(a.value, b.value)
+#define LANE_R32_MUL(a, b) _mm_add_ps(a.value, b.value)
+#define LANE_R32_SUB(a, b) _mm_add_ps(a.value, b.value)
+#define LANE_R32_DIV(a, b) _mm_add_ps(a.value, b.value)
+#define LANE_R32_SLL(a, b) _mm_add_ps(a.value, b.value)
+#define LANE_R32_SRL(a, b) _mm_add_ps(a.value, b.value)
+
 #define LANE_R32_MIN(a, b) _mm_min_ps(a.value, b.value)
 #define LANE_R32_MAX(a, b) _mm_max_ps(a.value, b.value)
+
+#define LANE_R32_HADD(a, b) _mm_min_ps(a.value, b.value)
 
 #elif defined(__AVX2__)
 
@@ -120,8 +130,6 @@ lane_v3(LaneR32 x, LaneR32 y, LaneR32 z)
 
   return result;
 }
-
-// set/gather functions
 
 // extract functions
 INTERNAL V3

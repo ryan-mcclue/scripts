@@ -1,0 +1,95 @@
+#!/bin/bash
+# SPDX-License-Identifier: zlib-acknowledgement
+set -e
+
+mkdir -p build
+
+ignored_warning_flags="-Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable
+  -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-result"
+
+#dev_type_flags="-O0 -g -ggdb3 -DRAY_SLOW -DRAY_INTERNAL"
+# IMPORTANT(Ryan): Are we fine with breaking IEEE floating point (losing precision) for speed?
+dev_type_flags="-O3 -DRAY_FAST -DRAY_EXTERNAL -ffast-math"
+
+common_flags="$ignored_warning_flags -Icode -fno-exceptions -fno-rtti -std=c++2a
+  -Werror -Wall -Wextra -pedantic -Warray-bounds=2 
+  -march=native -ffunction-sections -fdata-sections -Wl,--gc-sections"
+
+libraries="-lm -lSDL2"
+
+ctime -begin misc/desktop.ctm
+
+g++ $common_flags $dev_type_flags \
+  code/desktop.cpp -o build/desktop \
+  $libraries
+
+ctime -end misc/desktop.ctm
+
+#pushd run
+#../build/desktop
+#popd
+
+
+#!/bin/bash
+
+set -e
+
+mkdir -p build
+
+# TODO(Ryan): Have specific place for different BSPs
+bsp_flags="
+  -DUSE_HAL_DRIVER
+  -DSTM32F429xx
+  -I/home/ryan/prog/personal/tra/BSP/tra/Core/Inc
+  -I/home/ryan/prog/personal/tra/BSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc
+  -I/home/ryan/prog/personal/tra/BSP/tra/Drivers/STM32F4xx_HAL_Driver/Src
+  -I/home/ryan/prog/personal/tra/BSP/tra/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
+  -I/home/ryan/prog/personal/tra/BSP/tra/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+  -I/home/ryan/prog/personal/tra/BSP/tra/Drivers/CMSIS/Include
+  -T/home/ryan/prog/personal/tra/BSP/tra/STM32F429ZITx_FLASH.ld
+  /home/ryan/prog/personal/tra/BSP/tra/startup_stm32f429xx.s
+  /home/ryan/prog/personal/tra/BSP/tra/Core/Src/system_stm32f4xx.c
+"
+
+warning_flags="
+  -Werror -Wall -Wextra -pedantic -Warray-bounds=2
+  -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable
+  -Wno-unused-parameter -Wno-missing-field-initializers -Wno-write-strings
+  -Wno-unused-result
+"
+
+dev_type_flags="
+  -DTEM_INTERNAL
+  -DTEM_SLOW
+  -O0 -g -ggdb3
+"
+
+arch_flags="
+  -mcpu=cortex-m4 -mthumb -I$HOME/prog/cross/arm/include -L$HOME/prog/cross/arm/lib
+"
+
+target_flags="
+  -mfloat-abi=hard -mfpu=fpv4-sp-d16
+  --specs=nano.specs -lc -lm -lnosys
+"
+
+simulator_flags="
+  -mfloat-abi=soft
+  --specs=rdimon.specs -lc -lm -lrdimon
+"
+
+common_flags="
+  $arch_flags $warning_flags $dev_type_flags $bsp_flags
+  -std=gnu11
+  -Icode
+  -fdata-sections -ffunction-sections -Wl,--gc-sections
+"
+
+arm-none-eabi-gcc $common_flags $simulator_flags \
+  code/vector.c \
+  -o build/vector.elf -lc -lm -lrdimon
+
+pushd run
+qemu-system-gnuarmeclipse --nographic --no-reboot --board STM32F4-Discovery --mcu STM32F429ZI \
+    --semihosting-config enable=on,target=native --image ../build/vector.elf 
+popd

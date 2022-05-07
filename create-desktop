@@ -6,7 +6,18 @@
 project_abbrev="${1}"
 project_name="${2}"
 
-mkdir -p "$project_abbrev"
+copy_codefiles() {
+  cp -r "$HOME/prog/personal/scripts/desktop-template" "${project_abbrev}"
+
+  # TODO(Ryan): Run some name translation?
+
+  mv "${project_abbrev}/code/desktop.cpp" "${project_abbrev}/code/${project_abbrev}.cpp" 
+  mv "${project_abbrev}/code/desktop.h" "${project_abbrev}/code/${project_abbrev}.h" 
+
+  mv "${project_abbrev}/.gitignore.copy" "${project_abbrev}/.gitignore"
+
+  chmod +x "${project_abbrev}/misc/build"
+}
 
 create_license() {
 cat <<EOF > "${project_abbrev}/LICENSE"
@@ -41,21 +52,9 @@ cat <<EOF > "${project_abbrev}/README.md"
 EOF
 }
 
-copy_codefiles() {
-  cp "$HOME/prog/personal/scripts/desktop-template" "${project_abbrev}"
-
-  # TODO(Ryan): Run some name translation?
-
-  mv "${project_abbrev}/code/desktop.cpp" "${project_abbrev}/code/${project_abbrev}.cpp" 
-
-  mv "${project_abbrev}/.gitignore.copy" "${project_abbrev}/.gitignore"
-
-  # chmod +x misc/build
-}
-
+copy_codefiles
 create_license
 create_readme
-copy_codefiles
 
 dark_blue_fg='\e[01;34m'
 colour_reset='\e[0m'

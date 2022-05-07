@@ -30,3 +30,6 @@
 
 !desktop-template/
 !desktop-template/**/*
+
+!embedded-template/
+!embedded-template/**/*

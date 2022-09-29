@@ -1,8 +1,0 @@
-#!/bin/sh
-# SPDX-License-Identifier: zlib-acknowledgement
-
-prev_ifs="$IFS"
-IFS=:
-set -- $PATH 
-printf "%s\n" "$@"
-IFS="$prev_ifs"

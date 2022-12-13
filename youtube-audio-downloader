@@ -11,6 +11,10 @@ max_video_num_downloaded=0
 for mp3_file in *.mp3; do
   video_num_downloaded=${mp3_file%%\.mp3}
   video_num_downloaded=${video_num_downloaded##*+}
+
+  max_video_num_downloaded=${max_video_num_downloaded##*0} 
+  video_num_downloaded=${video_num_downloaded##*0} 
+
   if [[ $video_num_downloaded -gt $max_video_num_downloaded ]]; then
     max_video_num_downloaded=$video_num_downloaded
   fi

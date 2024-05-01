@@ -1,0 +1,27 @@
+# IMPORTANT(Ryan): Means *.mp3 won't be expanded to itself if no matches
+# Will have to enclose filenames with '' though
+shopt -s nullglob
+
+max_video_num_downloaded=0
+
+for mp3_file in *.mp3; do
+  video_num_downloaded=${mp3_file%%\.mp3}
+  video_num_downloaded=${video_num_downloaded##*+}
+
+  max_video_num_downloaded=${max_video_num_downloaded##*0} 
+  video_num_downloaded=${video_num_downloaded##*0} 
+
+  if [[ $video_num_downloaded -gt $max_video_num_downloaded ]]; then
+    max_video_num_downloaded=$video_num_downloaded
+  fi
+done
+
+printf -v playlist_start "%03d" $(( max_video_num_downloaded + 1 ))
+
+printf "Starting from video number %d\n" "$playlist_start"
+
+/usr/local/bin/youtube-dl --ignore-errors --restrict-filenames \
+  --extract-audio --audio-format mp3 \
+  --playlist-start $playlist_start \
+  -o '%(title)s+%(playlist_index)s.%(ext)s' \
+  'https://youtube.com/playlist?list=PLoCG1xasyb08fKmtcIw6-kmsfm7VKoKJV'

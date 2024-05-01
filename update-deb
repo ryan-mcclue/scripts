@@ -1,0 +1,36 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+git show-ref --verify --quiet refs/heads/pristine-tar
+test ! $? -eq 0 && printf "Run: gbp clone --pristine-tar <repo>; git remote set-url origin <ssh-clone-url>\n" && exit 1
+
+git show-ref --verify --quiet refs/heads/upstream
+test ! $? -eq 0 && printf "Run: gbp clone --pristine-tar <repo>; git remote set-url origin <ssh-clone-url>\n" && exit 2
+
+uscan --no-download > log.temp
+test $? -eq 0 && uscan
+
+version_downloaded="$(tail -1 log.temp)"
+version_downloaded="${version_downloaded##*/}"
+version_downloaded="${version_downloaded%.tar.gz}"
+version_downloaded="${version_downloaded#v}"
+rm log.temp
+
+project_name="$(git rev-parse --show-toplevel)"
+name="${project_name%-deb}"
+name="${name##*/}"
+
+gbp import-orig --pristine-tar "../${name}_${version_downloaded}.orig.tar.gz"
+
+gbp dch -a
+dch -e
+dpkg-buildpackage
+lintian
+
+printf "\n==================================\n"
+printf "Before adding files, run debclean first\n"
+printf "\n==================================\n"
+
+printf "\n==================================\n"
+printf "When ready to push, use --all and --follow-tags\n"
+printf "\n==================================\n"

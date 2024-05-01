@@ -1,0 +1,133 @@
+#!/bin/sh
+# SPDX-License-Identifier: zlib-acknowledgement
+
+set -e
+
+test ! -n "$1" -o ! -n "$2" && printf "usage: create-deb <name> <version>\n" && exit 1
+name="$1"
+version="$2"
+
+# NOTE(Ryan): Clean
+rm -rf "$name"*
+
+tarball="v${version}.tar.gz"
+wget -q "https://github.com/ryan-mcclue/$name/archive/refs/tags/$tarball" 
+if ! test $? -eq 0; then
+  printf "error: repo with version tag does not exist\n"
+  exit 2
+fi 
+
+new_tarball_name="${name}_$version.orig.tar.gz"
+mv "$tarball" "$new_tarball_name"
+untarred_upstream_name="$name"-"$version"
+mkdir "$untarred_upstream_name"
+tar -xvzf "$new_tarball_name" -C "$untarred_upstream_name" --strip-components 1
+
+(
+cd "$name-$version"
+debmake
+
+cat <<EOF > debian/copyright
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: $name
+Source: https://github.com/ryan-mcclue/$name/releases
+
+Files: *
+Copyright: (C) 2021 $DEBFULLNAME <$DEBEMAIL>
+License:   zlib
+ zlib License
+ . 
+ (C) 2021 $DEBFULLNAME 
+ . 
+ This software is provided 'as-is', without any express or implied
+ warranty.  In no event will the authors be held liable for any damages
+ arising from the use of this software.
+ . 
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+ . 
+ 1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software
+    in a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+ 2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+ 3. This notice may not be removed or altered from any source distribution.
+EOF
+
+depends_value='${misc:Depends}, ${shlibs:Depends}'
+cat <<EOF > debian/control
+Source: $name
+Section: misc
+Priority: optional
+Maintainer: $DEBFULLNAME <$DEBEMAIL>
+Build-Depends: debhelper (>=11~),
+ debhelper-compat (=12)
+Standards-Version: 4.5.0
+Homepage: https://github.com/ryan-mcclue/$name/releases
+
+Package: $name
+Architecture: any
+Multi-Arch: foreign
+Depends: $depends_value
+Description: Debian package for $name.
+  Replace this with a description of $name
+EOF
+rm debian/compat
+
+# NOTE(Ryan): Taken from: https://wiki.debian.org/debian/watch#GitHub
+# IMPORTANT(Ryan): Ensure version is up-to-date
+dollar_one='$1'
+cat <<EOF > debian/watch
+version=4
+opts=filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/$name-$dollar_one\.tar\.gz/ \
+  https://github.com/ryan-mcclue/$name/tags .*/v?(\d\S+)\.tar\.gz
+EOF
+
+all_symbol='$@'
+cat <<EOF > debian/rules.temp
+#!/usr/bin/make -f
+
+%:
+    dh $all_symbol
+
+override_dh_auto_clean:
+    rm -rf build 
+
+override_dh_auto_build:
+    . misc/build
+
+override_dh_auto_install:
+    mkdir -p debian/$name/usr/bin 
+    cp build/ubuntu-$name debian/$name/usr/bin/$name
+
+    mkdir -p debian/$name/usr/share/applications 
+    cp misc/$name.desktop debian/$name/usr/share/applications
+
+    mkdir -p debian/$name/usr/share/pixmaps 
+    cp misc/$name.png debian/$name/usr/share/pixmaps
+EOF
+# IMPORTANT(Ryan): Redirection over in-place necessary to avoid vimrc tab-space conversion
+sed -r 's/^\s+/\t/' < debian/rules.temp > debian/rules
+rm debian/rules.temp
+
+cat <<EOF > debian/README.Debian
+Debian package for https://github.com/ryan-mcclue/$name/releases
+EOF
+
+dpkg-source -b .
+dch -e
+
+dpkg-buildpackage
+
+lintian
+)
+
+printf "\n==================================\n"
+printf "To generate git repo: gbp import-dsc --pristine-tar <name>.dsc <name> \n"
+printf "\n==================================\n"
+
+printf "\n==================================\n"
+printf "To generate source .changes for dput ppa:ryan-mcclue/personal upload: debuild -S -k<gpg-key>\n"
+printf "\n==================================\n"

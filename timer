@@ -1,0 +1,50 @@
+
+#!/bin/bash
+
+set -e
+
+usage() 
+{
+  printf "Timer v1.0 by Ryan McClue\n" >&2
+  printf "Usage:\n" >&2
+  printf "timer -begin <timing_file>\n" >&2
+  printf "timer -end <timing_file>\n" >&2
+  printf "timer -stats <timing_file>\n" >&2
+}
+
+read_bytes() 
+{ # From file '$1', read '$2' byte(s) as hex string into _$READ_BYTES
+  [ $# -ne 2 ] && return 1 
+  local LC_ALL=C 
+  _READ_BYTES=$(od --read-bytes=$2 --address-radix=n --format=x1 "$1" | tr -d ' \n')
+}
+
+if [ ! $# -eq 2 ]; then
+  usage
+  exit 1
+fi
+
+mode="$1"
+timing_file_name="$2"
+
+# IMPORTANT(Ryan): Bash will ignore null bytes, so we make sure not to include any
+magic_write='\x03\xc1\xc2\x03'
+magic_read='03c1c203'
+
+# NOTE(Ryan): Verify we have a valid timer file or create one if it doesn't exist
+if [ -f "$timing_file_name" ]; then
+  read_bytes "$timing_file_name" 4 || exit 1 
+  if [ ! "$_READ_BYTES" = "$magic_read" ]; then
+    printf "ERROR: Unable to verify that \"%s\" is a valid timer file\n" "$timing_file_name" >&2
+  fi
+else 
+  printf "$magic_write" > "$timing_file_name"
+fi
+
+if [ "$mode" = "-begin" ]; then
+  # $(($SECONDS * 1000)) -- elapsed
+  # date +%s%3N -- epoch   
+fi
+
+# entry:
+# { start_date, flags, millis_elapsed }

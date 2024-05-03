@@ -1,0 +1,18 @@
+#!/bin/bash
+
+links=()
+links+=(" https://tratt.net/laurie/blog/archive.html ")
+links+=(" https://lemire.me/blog/ ")
+links+=(" https://travisdowns.github.io/ ")
+links+=(" https://carstein.github.io/ ")
+links+=(" https://wrongbaud.github.io/ ")
+links+=(" https://m0agx.eu/pages/archives.html ")
+links+=(" https://fabiensanglard.net/ ")
+links+=(" https://www.gingerbill.org/article/ ")
+links+=(" https://patternsinthemachine.net/ ")
+links+=(" https://blog.feabhas.com/ ")
+links+=(" https://dojofive.com/blog/ ")
+links+=(" https://www.embeddedrelated.com/blogs.php ")
+links+=(" https://embeddeduse.com/ ")
+
+firefox ${links[*]}

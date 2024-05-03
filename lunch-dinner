@@ -1,0 +1,18 @@
+#!/bin/bash
+
+links=()
+links+=(" https://www.youtube.com/@ChrisTitusTech ")
+links+=(" https://www.youtube.com/@LinusTechTips ")
+links+=(" https://www.youtube.com/@techlinked ")
+links+=(" https://www.youtube.com/@ThePrimeTimeagen ")
+links+=(" https://www.youtube.com/@DavesGarage ")
+links+=(" https://www.youtube.com/@veritasium ")
+links+=(" https://www.youtube.com/@CyberGizmo ")
+links+=(" https://www.youtube.com/@Fireship ")
+links+=(" https://www.youtube.com/@LowLevelLearning ")
+links+=(" https://www.youtube.com/@programmersarealsohuman5909 ")
+links+=(" https://www.youtube.com/@Computerphile ")
+links+=(" https://www.youtube.com/@KRAZAM ")
+links+=(" https://www.youtube.com/@lauriewired ")
+
+firefox ${links[*]}

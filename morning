@@ -1,0 +1,27 @@
+#!/bin/bash
+
+links=()
+links+=(" https://mail.proton.me/u/3/inbox ")
+links+=(" https://www.facebook.com/ ")
+links+=(" https://mail.google.com/mail/u/0/#inbox ")
+links+=(" https://handmade.network/ ")
+links+=(" https://stackoverflow.com/ ")
+links+=(" https://www.reddit.com/r/embedded/ ")
+links+=(" https://news.ycombinator.com/ ")
+links+=(" https://twitter.com/home ")
+
+# (job specific)
+# links+=(" https://www.edaboard.com/ ")
+
+# Uni links
+links+=( "https://outlook.office365.com/mail/" )
+# os
+#links+=( "https://edstem.org/au/courses/14865/discussion/" )
+#links+=( "https://cgi.cse.unsw.edu.au/~cs3231/notices.php" )
+#links+=( "https://moodle.telt.unsw.edu.au/course/view.php?id=81669" )
+## ai
+#links+=( "https://webcms3.cse.unsw.edu.au/COMP3411/24T1/" )
+#links+=( "https://webcms3.cse.unsw.edu.au/COMP3411/24T1/forums/" )
+
+
+firefox ${links[*]}

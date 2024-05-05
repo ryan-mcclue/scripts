@@ -1,6 +1,11 @@
 #!/bin/bash
 
+notify-send "TODO: automated crash reporting!" 
+# TODO: https://lance.handmade.network/blog/p/8491-automated_crash_reporting_in_basically_one_400-line_function#26634
+
 links=()
+links+=(" https://hackaday.com/2015/11/24/building-the-infinite-matrix-of-tamagotchis/ ")
+links+=(" https://jaycarlson.net/microcontrollers/ ")
 links+=(" https://tratt.net/laurie/blog/archive.html ")
 links+=(" https://lemire.me/blog/ ")
 links+=(" https://travisdowns.github.io/ ")

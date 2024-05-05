@@ -1,6 +1,8 @@
 #!/bin/bash
 
 links=()
+
+links+=(" https://www.youtube.com/@michael_tunnell ")
 links+=(" https://www.youtube.com/@ChrisTitusTech ")
 links+=(" https://www.youtube.com/@LinusTechTips ")
 links+=(" https://www.youtube.com/@techlinked ")

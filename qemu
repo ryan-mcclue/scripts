@@ -1,0 +1,13 @@
+# RUN
+#qemu-system-arm -machine raspi2 -no-reboot -nographic -serial mon:stdio \
+#  -kernel build/raspi2.elf
+
+# LAUNCH SERVER
+# qemu-system-arm -S -gdb tcp::1234 -machine raspi2 -no-reboot -nographic -serial mon:stdio -kernel build/ras.elf
+# ATTACH
+# arm-none-eabi-gdb -q --nh -ex 'file build/ras.elf' -ex 'target remote localhost:1234'
+
+#qemu-system-gnuarmeclipse --nographic --no-reboot --board STM32F4-Discovery --mcu STM32F429ZI \
+#    --semihosting-config enable=on,target=native --image ../build/vector.elf 
+
+# gdbserver :1234 <program>

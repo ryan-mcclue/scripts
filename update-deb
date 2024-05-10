@@ -1,6 +1,11 @@
 #!/bin/sh
 # SPDX-License-Identifier: zlib-acknowledgement
 
+# User facing:
+# sudo add-apt-repository ppa:ryan-mcclue/personal
+# sudo apt update
+# sudo apt install hhf
+
 git show-ref --verify --quiet refs/heads/pristine-tar
 test ! $? -eq 0 && printf "Run: gbp clone --pristine-tar <repo>; git remote set-url origin <ssh-clone-url>\n" && exit 1
 

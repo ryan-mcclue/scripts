@@ -4,6 +4,9 @@ notify-send "TODO: automated crash reporting!"
 # TODO: https://lance.handmade.network/blog/p/8491-automated_crash_reporting_in_basically_one_400-line_function#26634
 
 links=()
+# and their youtube for assembly modding
+links+=(" https://krystalgamer.github.io/spidey-joel/index.html ")
+links+=(" https://www.forrestthewoods.com/blog/ ")
 links+=(" https://techblog.paalijarvi.fi/ ")
 links+=(" https://justine.lol/sizetricks/ ")
 links+=(" https://coffeebeforearch.github.io/ ")

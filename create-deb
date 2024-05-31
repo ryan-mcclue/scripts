@@ -32,8 +32,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: $name
 Source: https://github.com/ryan-mcclue/$name/releases
 
-Files: *
-Copyright: (C) 2021 $DEBFULLNAME <$DEBEMAIL>
+Files: * Copyright: (C) 2021 $DEBFULLNAME <$DEBEMAIL>
 License:   zlib
  zlib License
  . 
